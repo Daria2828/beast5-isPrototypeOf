@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<script src="simpletest.js"></script>
+<script>
+
+function isPrototypeOf(prototypeObj, testObj) {
+   var protoOfTest = Object.getPrototypeOf(testObj);
+
+   if (prototypeObj === undefined || prototypeObj === null) {
+      throw new TypeError('The first argument cannot be null or undefined.');
+   }
+   // Returns false if:
+   // 1) object.create called with null ==> no obj prototype exists; OR
+   // 2) Base case 1: no prototype match at final level, Object.prototype. Calling next prototype ==> null.
+   if (protoOfTest === null) {
+   	return false;
+   }
+   // Base case 2: testObj's prototype matches given prototype
+   if (protoOfTest === prototypeObj) {
+   	return true;
+   // Recursive case: no match yet. retrieve and compare each sub-prototype of testObj to given prototype.
+   } else {
+   	return isPrototypeOf(prototypeObj, protoOfTest);
+   } 
+}
+
+tests({
+'If prototypeObj is the prototype of testObj, it should return true.': function() {
+   var canine = {
+     bark: function() {
+       console.log('bark');
+     }
+   };
+   var dog = Object.create(canine);
+   dog.fetch = function() {
+     console.log('fetch');
+   };
+   var myDog = Object.create(dog);
+	var result = isPrototypeOf(dog, myDog);
+	eq(result, true);
+},
+'It should return false if the second argument is not a true object.': function() {
+	var canine = {
+	  bark: function() {
+	    console.log('bark');
+	  }
+	};
+	var dog = Object.create(canine);
+	dog.fetch = function() {
+	  console.log('fetch');
+	};
+	var empty = Object.create(null);
+	var result = isPrototypeOf(dog, empty);
+	eq(result, false);
+},
+'If prototypeObj is found in the prototype chain of testObj, it should return true.': function() {
+	var dinosaur = {name: 'dinosaur'};
+	var avian = Object.create(dinosaur);
+	avian.name = 'avian';
+	var falcon = Object.create(avian);
+	falcon.name = 'falcon';
+	var myBird = Object.create(falcon);
+	myBird.name = 'myBird';
+
+	var result = isPrototypeOf(dinosaur, myBird);
+	eq(result, true);
+},
+'If prototypeObj is not in the prototype chain of testObj, it should return false.': function() {
+	var equine = {genus: 'equus'};
+	var horse = Object.create(equine);
+	horse.name = 'horsey';
+	var cartoon = {name: 'bojack'};
+
+	var result = isPrototypeOf(cartoon, horse);
+	eq(result, false);
+},
+'If Object.prototype is the first argument, it should return true for all test objects.': function() {
+	var feline = {genus: 'felis'};
+	var cat = Object.create(feline);
+	var result = isPrototypeOf(Object.prototype, cat);
+	eq(result, true);
+},
+'It should throw a TypeError if the first argument passed is undefined or null.': function() {
+   var isTypeError1 = false;
+   try {
+      isPrototypeOf(undefined, {});
+   } catch(e) {
+      isTypeError1 = (e instanceof TypeError);
+   }
+   eq(isTypeError1, true);
+
+   var isTypeError2 = false;
+   try {
+      isPrototypeOf(null, {});
+   } catch(e) {
+      isTypeError2 = (e instanceof TypeError);
+   }
+   eq(isTypeError2, true);
+}
+
+});
+</script>
+</html>
